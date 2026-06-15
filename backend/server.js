@@ -27,4 +27,12 @@ mongoose.connect(process.env.MONGODB_URI)
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+
+
 });
+
+const cors = require('cors');
+app.use(cors({
+  origin: "https://mental-health-ai-lilac.vercel.app", // ඔබේ Vercel URL එක මෙතන හරියටම දෙන්න
+  credentials: true
+}));
