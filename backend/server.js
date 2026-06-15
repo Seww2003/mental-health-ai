@@ -7,6 +7,10 @@ import authRoutes from './routes/authRoutes.js';
 import journalRoutes from './routes/journalRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 
+app.get('/', (req, res) => {
+  res.send('Mental Health AI Backend Running ✅');
+});
+
 dotenv.config();
 
 const app = express();
