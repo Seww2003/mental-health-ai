@@ -2,10 +2,10 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-base: "./",
- 
+  base: '/mental-health-ai/',   // 🔥 GitHub repo name  match 
 
   plugins: [react()],
+
 
   server: {
     port: 3000,
