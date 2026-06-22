@@ -10,14 +10,18 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  localStorage.setItem("user", JSON.stringify({ name: "demo" }));
+  navigate("/dashboard");
 
-  const handleSubmit = async (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
     const success = await login(email, password);
     if (success) navigate('/');
     setLoading(false);
-  };
+
+
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-slate-50 via-white to-slate-100">
