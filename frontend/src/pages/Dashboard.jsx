@@ -4,9 +4,10 @@ import { useAuth } from '../context/AuthContext';
 import MoodChart from '../components/MoodChart';
 import MoodCalendar from '../components/MoodCalendar';
 import { Activity, TrendingUp, Calendar, Sparkles, Heart } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const Dashboard = () => {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const [journals, setJournals] = useState([]);
   const [trends, setTrends] = useState({ trends: [], avgMood: 5, avgStress: 5 });
   const [loading, setLoading] = useState(true);
@@ -18,30 +19,98 @@ const Dashboard = () => {
 
   const fetchData = async () => {
     try {
+      // ✅ ගොඩක් වැදගත් - Token එක ගන්න
+      const token = localStorage.getItem('token');
+      
+      // ✅ Token එක නැත්නම් error එකක් දෙන්න
+      if (!token) {
+        console.log('⚠️ No token found!');
+        setLoading(false);
+        return;
+      }
+
+      console.log('🔑 Token found:', token.substring(0, 20) + '...');
+
+      // ✅ හරිම විදියට headers එක හදන්න
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      };
+
+      // ✅ API calls කරන්න
       const [journalsRes, trendsRes] = await Promise.all([
-        axios.get('/api/journal'),
-        axios.get('/api/journal/trends')
+        axios.get('http://localhost:5000/api/journal', config),
+        axios.get('http://localhost:5000/api/journal/trends', config)
       ]);
+      
+      console.log('✅ Journals loaded:', journalsRes.data.length);
+      console.log('✅ Trends loaded:', trendsRes.data);
+      
       setJournals(journalsRes.data);
       setTrends(trendsRes.data);
       
       if (journalsRes.data.length > 0) {
         const lastMood = journalsRes.data[0]?.mood;
-        const suggestionRes = await axios.get(`/api/ai/suggestion?mood=${lastMood}`);
-        setSuggestion(suggestionRes.data.suggestion);
+        try {
+          const suggestionRes = await axios.get(
+            `http://localhost:5000/api/ai/suggestion?mood=${lastMood}`,
+            config
+          );
+          setSuggestion(suggestionRes.data.suggestion);
+        } catch (err) {
+          console.log('Suggestion error:', err);
+        }
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('❌ Error:', error);
+      
+      // ✅ 401 error එක handle කරන්න
+      if (error.response?.status === 401) {
+        toast.error('Session expired. Please login again.');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      } else {
+        toast.error('Failed to load dashboard');
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  // Calculate streak
+  const calculateStreak = () => {
+    if (journals.length === 0) return 0;
+    let streak = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dates = journals.map(j => {
+      const d = new Date(j.date);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    });
+    const hasToday = dates.some(d => d.getTime() === today.getTime());
+    if (!hasToday) return 0;
+    streak = 1;
+    let checkDate = new Date(today);
+    checkDate.setDate(checkDate.getDate() - 1);
+    while (true) {
+      const hasEntry = dates.some(d => d.getTime() === checkDate.getTime());
+      if (hasEntry) {
+        streak++;
+        checkDate.setDate(checkDate.getDate() - 1);
+      } else break;
+    }
+    return streak;
+  };
+
   const stats = [
-    { label: 'Average Mood', value: trends.avgMood.toFixed(1), icon: Heart, color: 'text-rose-500', bg: 'bg-rose-50' },
-    { label: 'Average Stress', value: trends.avgStress.toFixed(1), icon: Activity, color: 'text-orange-500', bg: 'bg-orange-50' },
+    { label: 'Average Mood', value: trends.avgMood ? trends.avgMood.toFixed(1) : '0', icon: Heart, color: 'text-rose-500', bg: 'bg-rose-50' },
+    { label: 'Average Stress', value: trends.avgStress ? trends.avgStress.toFixed(1) : '0', icon: Activity, color: 'text-orange-500', bg: 'bg-orange-50' },
     { label: 'Total Entries', value: journals.length, icon: Calendar, color: 'text-indigo-500', bg: 'bg-indigo-50' },
-    { label: 'Streak', value: '7 days', icon: TrendingUp, color: 'text-green-500', bg: 'bg-green-50' },
+    { label: 'Day Streak', value: `${calculateStreak()} days`, icon: TrendingUp, color: 'text-green-500', bg: 'bg-green-50' },
   ];
 
   if (loading) {
@@ -54,13 +123,11 @@ const Dashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Welcome Section */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back! 👋</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back, {user?.name || 'Friend'}! 👋</h1>
         <p className="text-gray-600">Here's how you've been feeling lately</p>
       </div>
       
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {stats.map((stat, index) => (
           <div key={index} className="card hover:shadow-2xl transition-shadow">
@@ -75,7 +142,6 @@ const Dashboard = () => {
         ))}
       </div>
       
-      {/* Suggestion Card */}
       {suggestion && (
         <div className="card bg-gradient-to-r from-indigo-50 to-purple-50 mb-8 border border-indigo-100">
           <div className="flex items-start space-x-3">
@@ -88,11 +154,10 @@ const Dashboard = () => {
         </div>
       )}
       
-      {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <div className="card">
           <h3 className="text-lg font-semibold mb-4">Mood & Stress Trends</h3>
-          {trends.trends.length > 0 ? (
+          {trends.trends && trends.trends.length > 0 ? (
             <MoodChart data={trends.trends} />
           ) : (
             <div className="text-center py-12 text-gray-500">
@@ -116,7 +181,6 @@ const Dashboard = () => {
         </div>
       </div>
       
-      {/* Recent Entries */}
       <div className="card">
         <h3 className="text-lg font-semibold mb-4">Recent Journal Entries</h3>
         {journals.length > 0 ? (
