@@ -10,8 +10,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
-  localStorage.setItem("user", JSON.stringify({ name: "demo" }));
-  navigate("/dashboard");
+  
 
   async function handleSubmit(e) {
     e.preventDefault();
