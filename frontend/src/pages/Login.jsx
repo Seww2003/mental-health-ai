@@ -10,7 +10,6 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
-  
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -18,9 +17,18 @@ const Login = () => {
     const success = await login(email, password);
     if (success) navigate('/');
     setLoading(false);
-
-
   }
+
+  // Function to handle automatic demo login
+  const handleDemoLogin = async () => {
+    setLoading(true);
+    const demoEmail = "demo@mindmate.com"; // Set your demo account email here
+    const demoPassword = "demoPassword123"; // Set your demo account password here
+    
+    const success = await login(demoEmail, demoPassword);
+    if (success) navigate('/');
+    setLoading(false);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-slate-50 via-white to-slate-100">
@@ -98,6 +106,16 @@ const Login = () => {
               className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50"
             >
               {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+
+            {/* Demo Login Button */}
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              disabled={loading}
+              className="w-full bg-white text-indigo-600 py-3 rounded-xl font-semibold border-2 border-indigo-600 hover:bg-indigo-50 transition-all duration-200 disabled:opacity-50"
+            >
+              View Live Demo
             </button>
           </form>
 

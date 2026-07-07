@@ -1,0 +1,39 @@
+mutation CreateUser($email: String!, $displayName: String) @auth(level: PUBLIC) {
+  user_insert(
+    data: {
+      email: $email,
+      displayName: $displayName,
+      createdAt_expr: "request.time"
+    }
+  )
+}
+
+mutation CreateJournalEntry($content: String!, $sentimentScore: Float!, $moodLabel: String) @auth(level: USER) {
+  journalEntry_insert(
+    data: {
+      content: $content,
+      sentimentScore: $sentimentScore,
+      moodLabel: $moodLabel,
+      createdAt_expr: "request.time",
+      userId_expr: "auth.uid"
+    }
+  )
+}
+
+query GetMyJournalEntries @auth(level: USER) {
+  journalEntries(where: { userId: { eq_expr: "auth.uid" } }, orderBy: [{ createdAt: DESC }]) {
+    content
+    sentimentScore
+    moodLabel
+    createdAt
+  }
+}
+
+mutation LogActivity($journalEntryId: UUID!, $activityId: UUID!) @auth(level: USER) {
+  entryActivity_insert(
+    data: {
+      journalEntryId: $journalEntryId,
+      activityId: $activityId
+    }
+  )
+}

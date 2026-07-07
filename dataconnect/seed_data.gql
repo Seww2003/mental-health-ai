@@ -1,0 +1,42 @@
+mutation CreateSeedData @transaction {
+  user_insertMany(data: [
+    {
+      id: "71c08055-6679-40e1-9333-e840d21059f1",
+      email: "user1@example.com",
+      createdAt_expr: "request.time"
+    },
+    {
+      id: "71c08055-6679-40e1-9333-e840d21059f2",
+      email: "user2@example.com",
+      createdAt_expr: "request.time"
+    }
+  ])
+  journalEntry_insertMany(data: [
+    {
+      id: "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d",
+      userId: "71c08055-6679-40e1-9333-e840d21059f1",
+      content: "Feeling productive today!",
+      createdAt_expr: "request.time",
+      sentimentScore: 0.8
+    },
+    {
+      id: "b2c3d4e5-f6a7-5b6c-9d0e-1f2a3b4c5d6e",
+      userId: "71c08055-6679-40e1-9333-e840d21059f2",
+      content: "A bit tired, but looking forward to tomorrow.",
+      createdAt_expr: "request.time",
+      sentimentScore: 0.2
+    }
+  ])
+  activity_insertMany(data: [
+    {
+      id: "c3d4e5f6-a7b8-6c7d-0e1f-2a3b4c5d6e7f",
+      name: "Running",
+      categoryType: "Exercise"
+    },
+    {
+      id: "d4e5f6a7-b8c9-7d8e-1f2a-3b4c5d6e7f8a",
+      name: "Meditation",
+      categoryType: "Wellness"
+    }
+  ])
+}

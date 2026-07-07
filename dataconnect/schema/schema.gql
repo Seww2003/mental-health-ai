@@ -1,0 +1,32 @@
+type User @table {
+  email: String!
+  createdAt: Timestamp!
+  displayName: String
+  preferences: String
+}
+
+type JournalEntry @table {
+  content: String!
+  createdAt: Timestamp!
+  sentimentScore: Float!
+  moodLabel: String
+  user: User!
+}
+
+type Activity @table {
+  name: String!
+  categoryType: String!
+  description: String
+}
+
+type EntryActivity @table {
+  journalEntry: JournalEntry!
+  activity: Activity!
+}
+
+type Suggestion @table {
+  title: String!
+  description: String!
+  targetSentimentRange: String!
+  resourceUrl: String
+}
